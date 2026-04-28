@@ -1,0 +1,9 @@
+# Auto-generated reports
+reports/*.json
+reports/*.html
+
+# Editor / OS artifacts
+.vscode/settings.json
+Thumbs.db
+Desktop.ini
+*.bak

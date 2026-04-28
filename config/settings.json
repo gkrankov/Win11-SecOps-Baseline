@@ -1,0 +1,77 @@
+{
+  "_schema": "Win11-SecOps-Baseline/settings/v1",
+  "_description": "User-configurable runtime settings for Win11-SecOps-Baseline. Edit this file to customize tool behavior without modifying scripts.",
+
+  "reporting": {
+    "outputPath": "C:\\Win11-SecOps-Baseline\\reports",
+    "format": "JSON",
+    "_formatOptions": ["JSON", "HTML", "Both"],
+    "retainReportsDays": 90,
+    "includePassingControls": true,
+    "filenamePrefix": "baseline-report"
+  },
+
+  "notifications": {
+    "desktop": {
+      "enabled": true,
+      "notifyOnFailOnly": true,
+      "toastTitle": "Win11-SecOps-Baseline",
+      "toastDurationSeconds": 10
+    },
+    "email": {
+      "enabled": false,
+      "smtpServer": "smtp.example.com",
+      "smtpPort": 587,
+      "useTLS": true,
+      "senderAddress": "secops@example.com",
+      "recipientAddresses": [
+        "admin@example.com"
+      ],
+      "sendOnFailOnly": true,
+      "subjectPrefix": "[SecOps Alert]",
+      "_credentialNote": "Store SMTP credentials with: Get-Credential | Export-Clixml .\\config\\smtp.cred.xml"
+    }
+  },
+
+  "schedule": {
+    "frequency": "daily",
+    "_frequencyOptions": ["daily", "weekly"],
+    "daily": {
+      "runAtTime": "02:00",
+      "timeZone": "UTC"
+    },
+    "weekly": {
+      "dayOfWeek": "Monday",
+      "_dayOptions": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+      "runAtTime": "02:00",
+      "timeZone": "UTC"
+    },
+    "taskName": "Win11-SecOps-Baseline-Scan",
+    "taskDescription": "Automated Windows 11 security baseline scan",
+    "runAsSystem": true
+  },
+
+  "remediation": {
+    "autoRemediationEnabled": false,
+    "requireConfirmation": true,
+    "_note": "When autoRemediationEnabled is true, failing controls are fixed automatically. requireConfirmation is ignored when runAsSystem is true.",
+    "modules": {
+      "AuditPolicies":    { "autoRemediate": false },
+      "Firewall":         { "autoRemediate": false },
+      "UserAccounts":     { "autoRemediate": false },
+      "WindowsDefender":  { "autoRemediate": true  },
+      "NetworkHardening": { "autoRemediate": false }
+    }
+  },
+
+  "logging": {
+    "verbosity": "Normal",
+    "_verbosityOptions": ["Silent", "Minimal", "Normal", "Verbose", "Debug"],
+    "logPath": "C:\\Win11-SecOps-Baseline\\reports\\logs",
+    "logToFile": true,
+    "logToConsole": true,
+    "maxLogFileSizeMB": 10,
+    "rotateLogs": true,
+    "retainLogsDays": 30
+  }
+}

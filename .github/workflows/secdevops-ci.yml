@@ -1,0 +1,83 @@
+name: SecDevOps CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-security-baseline:
+    name: Validate PowerShell Project
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: PowerShell syntax validation (.ps1)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = Get-ChildItem -Path . -Recurse -File -Filter '*.ps1'
+          if (-not $files) {
+            Write-Host 'No .ps1 files found.'
+            exit 0
+          }
+
+          $parseErrors = New-Object System.Collections.Generic.List[string]
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors) {
+              foreach ($err in $errors) {
+                $parseErrors.Add(("{0}:{1}:{2} {3}" -f $file.FullName, $err.Extent.StartLineNumber, $err.Extent.StartColumnNumber, $err.Message))
+              }
+            }
+          }
+
+          if ($parseErrors.Count -gt 0) {
+            Write-Error "PowerShell syntax validation failed:`n$($parseErrors -join "`n")"
+          }
+
+          Write-Host "PowerShell syntax validation passed for $($files.Count) files."
+
+      - name: Check for hardcoded secrets (simple grep pattern)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $pattern = '(?i)(password\s*[:=]|passwd\s*[:=]|api[_-]?key\s*[:=]|secret\s*[:=]|token\s*[:=]|client[_-]?secret\s*[:=]|private[_-]?key\s*[:=])'
+          $targets = Get-ChildItem -Path . -Recurse -File -Include *.ps1,*.psm1,*.json,*.yml,*.yaml
+
+          $hits = $targets | Select-String -Pattern $pattern
+          if ($hits) {
+            Write-Host 'Potential hardcoded secrets detected:'
+            $hits | ForEach-Object {
+              Write-Host ("{0}:{1}: {2}" -f $_.Path, $_.LineNumber, $_.Line.Trim())
+            }
+            throw 'Hardcoded secret pattern check failed.'
+          }
+
+          Write-Host 'No hardcoded secret patterns detected.'
+
+      - name: Validate JSON config files
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $jsonFiles = Get-ChildItem -Path './config' -File -Filter '*.json'
+          if (-not $jsonFiles) {
+            Write-Host 'No JSON files found under config/.'
+            exit 0
+          }
+
+          foreach ($file in $jsonFiles) {
+            try {
+              Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json | Out-Null
+              Write-Host "Valid JSON: $($file.FullName)"
+            }
+            catch {
+              throw "Invalid JSON in $($file.FullName): $($_.Exception.Message)"
+            }
+          }
+
+          Write-Host "JSON validation passed for $($jsonFiles.Count) config files."

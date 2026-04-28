@@ -1,0 +1,49 @@
+{
+  "AuditPolicies": {
+    "AuditLogonEvents":        "Success,Failure",
+    "AuditAccountLogon":       "Success,Failure",
+    "AuditPrivilegeUse":       "Failure",
+    "AuditPolicyChange":       "Success,Failure",
+    "AuditObjectAccess":       "Failure",
+    "AuditProcessTracking":    "Failure",
+    "AuditSystemEvents":       "Success,Failure",
+    "AuditAccountManagement":  "Success,Failure"
+  },
+  "Firewall": {
+    "Profiles":                ["Domain", "Private", "Public"],
+    "DefaultInboundAction":    "Block",
+    "DefaultOutboundAction":   "Allow",
+    "NotifyOnBlock":           false,
+    "LogAllowed":              false,
+    "LogBlocked":              true,
+    "LogMaxSizeKilobytes":     16384
+  },
+  "UserAccounts": {
+    "DisableBuiltInAdministrator": true,
+    "DisableBuiltInGuest":         true,
+    "MaxPasswordAge":              60,
+    "MinPasswordLength":           14,
+    "PasswordComplexity":          true,
+    "LockoutThreshold":            5,
+    "LockoutDuration":             15,
+    "LockoutObservationWindow":    15
+  },
+  "WindowsDefender": {
+    "EnableRealTimeMonitoring":     true,
+    "EnableCloudProtection":        true,
+    "CloudBlockLevel":              "High",
+    "EnableTamperProtection":       true,
+    "EnableNetworkProtection":      true,
+    "PUAProtection":                1,
+    "EnableControlledFolderAccess": true
+  },
+  "NetworkHardening": {
+    "DisableSMBv1":       true,
+    "DisableLLMNR":       true,
+    "DisableNetBIOS":     true,
+    "DisableWPAD":        true,
+    "MinimumTLSVersion":  "1.2",
+    "DisableRC4":         true,
+    "DisableNTLMv1":      true
+  }
+}

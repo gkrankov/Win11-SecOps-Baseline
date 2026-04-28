@@ -1,0 +1,6 @@
+{
+  "_comment": "Add hostnames or setting keys to skip during a baseline run.",
+  "Hosts":       [],
+  "SkipModules": [],
+  "SkipSettings": []
+}
