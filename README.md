@@ -173,6 +173,8 @@ Checkpoint workflow:
 5. Create release tag and push (`git tag <version-tag>`; `git push origin main --tags`).
 6. Verify CI artifacts are retained for audit evidence.
 
+For branch protection and release governance policy details, see [docs/SECURITY-GOVERNANCE.md](docs/SECURITY-GOVERNANCE.md).
+
 ### Before You Refactor
 
 1. Run Invoke-DevGate.ps1 - all gates green.

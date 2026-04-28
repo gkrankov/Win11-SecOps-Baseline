@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   validate-security-baseline:
@@ -98,11 +105,41 @@ jobs:
             ('Timestamp (UTC): {0}' -f (Get-Date).ToUniversalTime().ToString('o')),
             ('Commit SHA: {0}' -f $env:GITHUB_SHA),
             ('Repository: {0}' -f $env:GITHUB_REPOSITORY),
+            ('Ref: {0}' -f $env:GITHUB_REF),
+            ('Actor: {0}' -f $env:GITHUB_ACTOR),
+            ('Run URL: https://github.com/{0}/actions/runs/{1}' -f $env:GITHUB_REPOSITORY, $env:GITHUB_RUN_ID),
             'Checks: PowerShell parser validation, hardcoded-secret pattern scan, JSON config validation',
             'Result: PASS if job completed successfully; see workflow logs for detailed evidence.'
           )
 
           Set-Content -LiteralPath $summaryPath -Value $lines -Encoding UTF8
+
+      - name: Collect repository evidence files
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $artifactDir = '.\artifacts'
+          if (-not (Test-Path -LiteralPath $artifactDir -PathType Container)) {
+            New-Item -ItemType Directory -Path $artifactDir -Force | Out-Null
+          }
+
+          $evidenceFiles = @(
+            '.\README.md',
+            '.\docs\CHANGELOG.md',
+            '.\docs\CONTROLS.md',
+            '.\docs\mitre-mapping.md',
+            '.\config\baseline.json',
+            '.\config\settings.json',
+            '.\config\module-hashes.json'
+          )
+
+          foreach ($file in $evidenceFiles) {
+            if (Test-Path -LiteralPath $file -PathType Leaf) {
+              Copy-Item -LiteralPath $file -Destination (Join-Path $artifactDir (Split-Path -Path $file -Leaf)) -Force
+            }
+          }
 
       - name: Upload CI evidence artifacts
         if: always()
