@@ -164,6 +164,15 @@ Checkpoint workflow:
 .\scripts\New-RefactorCheckpoint.ps1 -Rollback -TagName refactor/Phase1-pre-20260428 -Confirmation CONFIRM-ROLLBACK
 ```
 
+### Release Checklist
+
+1. Run `./scripts/Invoke-DevGate.ps1` and confirm all gates pass.
+2. Regenerate integrity manifest: dot-source `src/core/IntegrityVerification.ps1` then run `New-ModuleHashManifest -ProjectRoot $PWD -OutputPath .\config\module-hashes.json`.
+3. Re-run `./scripts/Invoke-DevGate.ps1` to validate the refreshed manifest.
+4. Update [docs/CHANGELOG.md](docs/CHANGELOG.md) with gate evidence and release notes.
+5. Create release tag and push (`git tag <version-tag>`; `git push origin main --tags`).
+6. Verify CI artifacts are retained for audit evidence.
+
 ### Before You Refactor
 
 1. Run Invoke-DevGate.ps1 - all gates green.
