@@ -7,3 +7,7 @@ reports/*.html
 Thumbs.db
 Desktop.ini
 *.bak
+
+# Local SSH key artifacts (never commit)
+win11secops
+win11secops.pub
