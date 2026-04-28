@@ -1,0 +1,10 @@
+# Default owner for all repository changes
+* @gkrankov
+
+# Security-sensitive areas require explicit owner attention
+/config/ @gkrankov
+/modules/ @gkrankov
+/scripts/ @gkrankov
+/src/ @gkrankov
+/.github/workflows/ @gkrankov
+/docs/SECURITY-GOVERNANCE.md @gkrankov
