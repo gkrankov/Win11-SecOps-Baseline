@@ -94,7 +94,7 @@ Write-Log "Hardening session started by $env:USERNAME on $env:COMPUTERNAME" -Lev
 Write-Log "Log file: $LogPath" -Level INFO
 
 if ($DryRun) {
-    Write-Host "`n*** DRY-RUN MODE --- no changes will be made ***`n" -ForegroundColor Magenta
+    Write-Host "`n*** DRY-RUN MODE - no changes will be made ***`n" -ForegroundColor Magenta
     Write-Log 'DRY-RUN MODE active. No system changes will be applied.' -Level DRYRUN
 }
 
@@ -241,7 +241,7 @@ try {
 # -----------------------------------------------------------------------------
 Write-Step 'Enable Attack Surface Reduction (ASR) Rules'
 
-# Rule GUIDs and friendly names --- mode 1 = Block
+# Rule GUIDs and friendly names - mode 1 = Block
 $asrRules = [ordered]@{
     'BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550' = 'Block executable content from email/webmail'
     '3B576869-A4EC-4529-8536-B80A7769E899' = 'Block Office apps from creating executable content'
@@ -267,7 +267,7 @@ foreach ($ruleId in $asrRules.Keys) {
         if ($DryRun) {
             $alreadySet = $existingRules -contains $ruleId
             $status     = if ($alreadySet) { 'already enabled' } else { 'NOT currently enabled' }
-            Write-Log "[DRY RUN] ASR rule ($status): $($asrRules[$ruleId]) [$ruleId] --- Would set to Enabled." -Level DRYRUN
+            Write-Log "[DRY RUN] ASR rule ($status): $($asrRules[$ruleId]) [$ruleId] - Would set to Enabled." -Level DRYRUN
         } else {
             Add-MpPreference -AttackSurfaceReductionRules_Ids $ruleId `
                              -AttackSurfaceReductionRules_Actions Enabled `
