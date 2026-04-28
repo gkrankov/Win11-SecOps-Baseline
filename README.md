@@ -6,6 +6,19 @@
 
 **Win11-SecOps-Baseline** is a PowerShell-driven security baseline toolkit for Windows 11 that helps teams harden endpoints, detect security drift, and measure posture with repeatable evidence.
 
+## Current Version
+
+- Version: **0.2.0**
+- Release date: **2026-04-28**
+- Baseline tag: **v0.2.0-baseline-locked**
+- Latest gate baseline:
+   - Parse Check: PASS (25 files)
+   - Test Suite: PASS (49/49)
+   - Integrity Check: PASS (9 files verified)
+   - Exit code: 0
+
+See [docs/CHANGELOG.md](docs/CHANGELOG.md) for full release details.
+
 ## Problem Statement
 
 Security teams often face three recurring issues:
