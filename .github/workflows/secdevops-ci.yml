@@ -49,23 +49,65 @@ jobs:
 
           Write-Host "PowerShell syntax validation passed for $($files.Count) files."
 
-      - name: Check for hardcoded secrets (simple grep pattern)
+      - name: Check for hardcoded secrets (expanded patterns)
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $pattern = '(?i)(password\s*[:=]|passwd\s*[:=]|api[_-]?key\s*[:=]|secret\s*[:=]|token\s*[:=]|client[_-]?secret\s*[:=]|private[_-]?key\s*[:=])'
-          $targets = Get-ChildItem -Path . -Recurse -File -Include *.ps1,*.psm1,*.json,*.yml,*.yaml
+          $scanPatterns = @(
+            '(?i)\b(password|passwd|pwd|secret|api[_-]?key|client[_-]?secret|private[_-]?key|access[_-]?key|auth[_-]?token|bearer[_-]?token|connectionstring)\b\s*[:=]\s*["`]?[^\s"`]{8,}',
+            '(?i)\b(ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{82})\b',
+            '(?i)\bAKIA[0-9A-Z]{16}\b',
+            '(?i)\bASIA[0-9A-Z]{16}\b',
+            '(?i)-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----'
+          )
 
-          $hits = $targets | Select-String -Pattern $pattern
-          if ($hits) {
-            Write-Host 'Potential hardcoded secrets detected:'
-            $hits | ForEach-Object {
-              Write-Host ("{0}:{1}: {2}" -f $_.Path, $_.LineNumber, $_.Line.Trim())
+          $allowPatterns = @(
+            '(?i)^\s*#',
+            '(?i)example',
+            '(?i)placeholder',
+            '(?i)sample',
+            '(?i)dummy',
+            '(?i)changeme',
+            '(?i)your[_-]?(password|secret|token|key)'
+          )
+
+          $targets = Get-ChildItem -Path . -Recurse -File -Include *.ps1,*.psm1,*.json,*.yml,*.yaml,*.md |
+            Where-Object {
+              $_.FullName -notmatch '(?i)\\.git\\' -and
+              $_.FullName -notmatch '(?i)\\node_modules\\' -and
+              $_.FullName -notmatch '(?i)\\artifacts\\'
             }
+
+          $findings = New-Object System.Collections.Generic.List[string]
+          foreach ($file in $targets) {
+            $matches = Select-String -Path $file.FullName -Pattern $scanPatterns -AllMatches
+            foreach ($match in $matches) {
+              $line = ($match.Line | Out-String).Trim()
+              if ([string]::IsNullOrWhiteSpace($line)) {
+                continue
+              }
+
+              $isAllowed = $false
+              foreach ($allowPattern in $allowPatterns) {
+                if ($line -match $allowPattern) {
+                  $isAllowed = $true
+                  break
+                }
+              }
+
+              if (-not $isAllowed) {
+                $findings.Add(("{0}:{1}: {2}" -f $match.Path, $match.LineNumber, $line))
+              }
+            }
+          }
+
+          if ($findings.Count -gt 0) {
+            Write-Host 'Potential hardcoded secrets detected:'
+            $findings | ForEach-Object { Write-Host $_ }
             throw 'Hardcoded secret pattern check failed.'
           }
 
-          Write-Host 'No hardcoded secret patterns detected.'
+          Write-Host 'No hardcoded secret patterns detected by expanded scan.'
 
       - name: Validate JSON config files
         shell: pwsh
@@ -89,6 +131,20 @@ jobs:
 
           Write-Host "JSON validation passed for $($jsonFiles.Count) config files."
 
+      - name: Run development gate script
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          if ('${{ github.event_name }}' -eq 'pull_request') {
+            Write-Host 'Running developer gate in PR mode (integrity check skipped).'
+            ./scripts/Invoke-DevGate.ps1 -SkipIntegrity
+          }
+          else {
+            Write-Host 'Running full developer gate (including integrity check).'
+            ./scripts/Invoke-DevGate.ps1
+          }
+
       - name: Create CI evidence summary
         if: always()
         shell: pwsh
@@ -108,7 +164,7 @@ jobs:
             ('Ref: {0}' -f $env:GITHUB_REF),
             ('Actor: {0}' -f $env:GITHUB_ACTOR),
             ('Run URL: https://github.com/{0}/actions/runs/{1}' -f $env:GITHUB_REPOSITORY, $env:GITHUB_RUN_ID),
-            'Checks: PowerShell parser validation, hardcoded-secret pattern scan, JSON config validation',
+            'Checks: PowerShell parser validation, expanded secret scan, JSON config validation, Invoke-DevGate execution',
             'Result: PASS if job completed successfully; see workflow logs for detailed evidence.'
           )
 
