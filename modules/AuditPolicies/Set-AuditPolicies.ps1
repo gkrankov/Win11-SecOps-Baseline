@@ -15,15 +15,17 @@ $ErrorActionPreference = 'Stop'
 $settings = $Config.AuditPolicies
 $results  = @{}
 
+# Use locale-independent GUIDs — auditpol.exe category names are localized
+# and will fail on non-English Windows (e.g. Hungarian). GUIDs are universal.
 $auditMap = @{
-    'AuditLogonEvents'       = 'Logon/Logoff'
-    'AuditAccountLogon'      = 'Account Logon'
-    'AuditPrivilegeUse'      = 'Privilege Use'
-    'AuditPolicyChange'      = 'Policy Change'
-    'AuditObjectAccess'      = 'Object Access'
-    'AuditProcessTracking'   = 'Detailed Tracking'
-    'AuditSystemEvents'      = 'System'
-    'AuditAccountManagement' = 'Account Management'
+    'AuditLogonEvents'       = '{69979849-797A-11D9-BED3-505054503030}'
+    'AuditAccountLogon'      = '{69979850-797A-11D9-BED3-505054503030}'
+    'AuditPrivilegeUse'      = '{6997984B-797A-11D9-BED3-505054503030}'
+    'AuditPolicyChange'      = '{6997984D-797A-11D9-BED3-505054503030}'
+    'AuditObjectAccess'      = '{6997984A-797A-11D9-BED3-505054503030}'
+    'AuditProcessTracking'   = '{6997984C-797A-11D9-BED3-505054503030}'
+    'AuditSystemEvents'      = '{69979848-797A-11D9-BED3-505054503030}'
+    'AuditAccountManagement' = '{6997984E-797A-11D9-BED3-505054503030}'
 }
 
 foreach ($key in $auditMap.Keys) {

@@ -70,13 +70,24 @@ if ($settings.DisableNetBIOS) {
 
 # Disable WPAD
 if ($settings.DisableWPAD) {
-    if ($PSCmdlet.ShouldProcess('WinHttpAutoProxySvc', 'Disable WPAD')) {
+    if ($PSCmdlet.ShouldProcess('WinHttpAutoProxySvc / WPAD', 'Disable WPAD')) {
         try {
             Set-Service -Name WinHttpAutoProxySvc -StartupType Disabled -ErrorAction Stop
-            $results['WPAD'] = 'Disabled'
+            $results['WPAD'] = 'Disabled (service)'
         } catch {
-            $results['WPAD'] = "Failed: $($_.Exception.Message)"
-            throw
+            # WinHttpAutoProxySvc is a trigger-start protected service on Windows 11
+            # and cannot be disabled via the SCM API. Fall back to policy registry key.
+            try {
+                $wpadPolicyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\Internet Settings'
+                if (-not (Test-Path -LiteralPath $wpadPolicyPath)) {
+                    New-Item -Path $wpadPolicyPath -Force -ErrorAction Stop | Out-Null
+                }
+                Set-ItemProperty -Path $wpadPolicyPath -Name 'AutoDetect' -Value 0 -Type DWord -Force -ErrorAction Stop
+                $results['WPAD'] = 'Disabled via policy registry (service is OS-protected)'
+            } catch {
+                $results['WPAD'] = "Failed: $($_.Exception.Message)"
+                throw
+            }
         }
     } else { $results['WPAD'] = 'WhatIf' }
 }

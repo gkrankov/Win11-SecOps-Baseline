@@ -49,6 +49,15 @@ $script:ReportDir  = Join-Path $RootPath 'reports'
 $script:ModuleDir  = Join-Path $RootPath 'modules'
 $script:AllowedModules = @('AuditPolicies', 'Firewall', 'UserAccounts', 'WindowsDefender', 'NetworkHardening')
 
+# Explicit script filename map — handles modules whose file name differs from the module name
+$script:ModuleScriptMap = @{
+    'AuditPolicies'    = 'Set-AuditPolicies.ps1'
+    'Firewall'         = 'Set-FirewallBaseline.ps1'
+    'UserAccounts'     = 'Set-UserAccounts.ps1'
+    'WindowsDefender'  = 'Set-DefenderBaseline.ps1'
+    'NetworkHardening' = 'Set-NetworkHardening.ps1'
+}
+
 # ── Load config ──────────────────────────────────────────────────────────────
 $config = Get-Content -Raw $script:ConfigPath | ConvertFrom-Json
 
@@ -90,7 +99,8 @@ foreach ($moduleName in $Modules) {
         continue
     }
 
-    $scriptPath = Join-Path $script:ModuleDir "$moduleName\Set-$moduleName.ps1"
+    $scriptFile = $script:ModuleScriptMap[$moduleName]
+    $scriptPath = Join-Path $script:ModuleDir "$moduleName\$scriptFile"
 
     if (-not (Test-Path $scriptPath)) {
         Write-Warning "Module script not found: $scriptPath"
