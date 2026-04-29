@@ -121,7 +121,10 @@ if (-not $SkipTests) {
         throw 'Required Pester version 3.4.0 was not found. Install it with: Install-Module Pester -RequiredVersion 3.4.0 -Scope CurrentUser -Force -SkipPublisherCheck'
     }
 
-    Import-Module Pester -RequiredVersion 3.4.0 -ErrorAction Stop
+    # Unload any currently loaded Pester (including Pester 5 which the runner may have auto-loaded)
+    # then import 3.4.0 by its explicit manifest path to bypass module-path version-priority issues.
+    Remove-Module Pester -Force -ErrorAction SilentlyContinue
+    Import-Module (Join-Path $pesterModule.ModuleBase 'Pester.psd1') -Force -ErrorAction Stop
     $testResult = Invoke-Pester -Path $resolvedTestPath.Path -PassThru
     if ($null -eq $testResult) {
         throw 'Pester did not return a test result object. Ensure Pester is installed correctly.'

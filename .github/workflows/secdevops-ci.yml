@@ -139,9 +139,25 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
 
+          # Unload any Pester version already in the session (runner may have Pester 5 auto-loaded)
+          Remove-Module Pester -Force -ErrorAction SilentlyContinue
+
+          # Install 3.4.0 to CurrentUser scope if absent
           if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -eq [version]'3.4.0' })) {
-            Install-Module -Name Pester -RequiredVersion 3.4.0 -Scope CurrentUser -Force -SkipPublisherCheck
+            Install-Module -Name Pester -RequiredVersion 3.4.0 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
           }
+
+          # Prepend CurrentUser modules path so 3.4.0 is discovered before the system-level Pester 5
+          $userMods = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"
+          if ($env:PSModulePath -notlike "$userMods*") {
+            $env:PSModulePath = "$userMods;$env:PSModulePath"
+          }
+
+          # Force-import 3.4.0 by explicit manifest path to bypass any version-priority ambiguity
+          $pester34 = Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -eq [version]'3.4.0' } | Select-Object -First 1
+          if (-not $pester34) { throw 'Pester 3.4.0 not found after install step.' }
+          Import-Module (Join-Path $pester34.ModuleBase 'Pester.psd1') -Force
+          Write-Host "Pester loaded: $((Get-Module Pester).Version) from $((Get-Module Pester).ModuleBase)"
 
           if ('${{ github.event_name }}' -eq 'pull_request') {
             Write-Host 'Running developer gate in PR mode (integrity check skipped).'
