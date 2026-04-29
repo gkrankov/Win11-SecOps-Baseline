@@ -15,9 +15,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-BeforeAll {
-    . (Join-Path (Split-Path $PSScriptRoot -Parent) '..\src\core\RunContext.ps1')
-}
+. (Join-Path (Split-Path $PSScriptRoot -Parent) '..\src\core\RunContext.ps1')
 
 Describe 'New-SecOpsRunContext' {
     It 'returns hashtable with all required keys' {

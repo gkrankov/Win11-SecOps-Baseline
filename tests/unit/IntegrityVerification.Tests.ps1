@@ -15,22 +15,20 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-BeforeAll {
-    . (Join-Path (Split-Path $PSScriptRoot -Parent) '..\src\core\IntegrityVerification.ps1')
+. (Join-Path (Split-Path $PSScriptRoot -Parent) '..\src\core\IntegrityVerification.ps1')
 
-    function New-TestProject {
-        $root = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString('N'))
-        $srcCore = Join-Path $root 'src\core'
-        $modulesA = Join-Path $root 'modules\Alpha'
+function New-TestProject {
+    $root = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString('N'))
+    $srcCore = Join-Path $root 'src\core'
+    $modulesA = Join-Path $root 'modules\Alpha'
 
-        New-Item -ItemType Directory -Path $srcCore -Force | Out-Null
-        New-Item -ItemType Directory -Path $modulesA -Force | Out-Null
+    New-Item -ItemType Directory -Path $srcCore -Force | Out-Null
+    New-Item -ItemType Directory -Path $modulesA -Force | Out-Null
 
-        Set-Content -LiteralPath (Join-Path $srcCore 'One.ps1') -Value 'Write-Output "one"' -Encoding UTF8
-        Set-Content -LiteralPath (Join-Path $modulesA 'Set-Alpha.ps1') -Value 'Write-Output "alpha"' -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $srcCore 'One.ps1') -Value 'Write-Output "one"' -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $modulesA 'Set-Alpha.ps1') -Value 'Write-Output "alpha"' -Encoding UTF8
 
-        return $root
-    }
+    return $root
 }
 
 Describe 'New-ModuleHashManifest' {

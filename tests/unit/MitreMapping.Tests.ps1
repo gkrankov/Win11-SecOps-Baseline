@@ -15,13 +15,11 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-BeforeAll {
-    . (Join-Path (Split-Path $PSScriptRoot -Parent) '..\src\core\RunContext.ps1')
+. (Join-Path (Split-Path $PSScriptRoot -Parent) '..\src\core\RunContext.ps1')
 
-    $script:projectRoot = Resolve-Path (Join-Path (Split-Path $PSScriptRoot -Parent) '..')
-    $script:controlsPath = Join-Path $script:projectRoot 'docs\CONTROLS.md'
-    $script:mitrePath = Join-Path $script:projectRoot 'docs\mitre-mapping.md'
-}
+$projectRoot = Resolve-Path (Join-Path (Split-Path $PSScriptRoot -Parent) '..')
+$controlsPath = Join-Path $projectRoot 'docs\CONTROLS.md'
+$mitrePath = Join-Path $projectRoot 'docs\mitre-mapping.md'
 
 function Read-FileSafely {
     param([Parameter(Mandatory)] [string] $Path)
@@ -35,24 +33,24 @@ function Read-FileSafely {
 
 Describe 'MITRE Mapping File Structure' {
     It 'docs/mitre-mapping.md exists and is not empty (or gracefully skips if missing)' {
-        if (-not (Test-Path -LiteralPath $script:mitrePath -PathType Leaf)) {
+        if (-not (Test-Path -LiteralPath $mitrePath -PathType Leaf)) {
             Write-Warning 'Skipping MITRE structure checks because docs/mitre-mapping.md does not exist.'
             $true | Should Be $true
             return
         }
 
-        $content = Get-Content -LiteralPath $script:mitrePath -Raw
+        $content = Get-Content -LiteralPath $mitrePath -Raw
         ([string]::IsNullOrWhiteSpace($content)) | Should Be $false
     }
 
     It 'contains required headers when file exists' {
-        if (-not (Test-Path -LiteralPath $script:mitrePath -PathType Leaf)) {
+        if (-not (Test-Path -LiteralPath $mitrePath -PathType Leaf)) {
             Write-Warning 'Skipping required header checks because docs/mitre-mapping.md does not exist.'
             $true | Should Be $true
             return
         }
 
-        $content = Get-Content -LiteralPath $script:mitrePath -Raw
+        $content = Get-Content -LiteralPath $mitrePath -Raw
         ($content -match 'Control') | Should Be $true
         ($content -match 'ATT&CK Technique') | Should Be $true
         ($content -match 'Tactic') | Should Be $true
@@ -62,20 +60,20 @@ Describe 'MITRE Mapping File Structure' {
 
 Describe 'CONTROLS.md to MITRE Cross-Reference' {
     It 'every CTRL identifier in CONTROLS.md appears in docs/mitre-mapping.md' {
-        if (-not (Test-Path -LiteralPath $script:controlsPath -PathType Leaf)) {
+        if (-not (Test-Path -LiteralPath $controlsPath -PathType Leaf)) {
             Write-Warning 'Skipping cross-reference check because docs/CONTROLS.md does not exist.'
             $true | Should Be $true
             return
         }
 
-        if (-not (Test-Path -LiteralPath $script:mitrePath -PathType Leaf)) {
+        if (-not (Test-Path -LiteralPath $mitrePath -PathType Leaf)) {
             Write-Warning 'Skipping cross-reference check because docs/mitre-mapping.md does not exist.'
             $true | Should Be $true
             return
         }
 
-        $controlsContent = Get-Content -LiteralPath $script:controlsPath
-        $mitreContent = Get-Content -LiteralPath $script:mitrePath -Raw
+        $controlsContent = Get-Content -LiteralPath $controlsPath
+        $mitreContent = Get-Content -LiteralPath $mitrePath -Raw
 
         $controlIds = @()
         foreach ($line in $controlsContent) {
@@ -103,13 +101,13 @@ Describe 'CONTROLS.md to MITRE Cross-Reference' {
 
 Describe 'MITRE Technique ID Format Validation' {
     It 'all ATT&CK technique IDs use Tdddd or Tdddd.ddd and are not blank when mapping exists' {
-        if (-not (Test-Path -LiteralPath $script:mitrePath -PathType Leaf)) {
+        if (-not (Test-Path -LiteralPath $mitrePath -PathType Leaf)) {
             Write-Warning 'Skipping technique format checks because docs/mitre-mapping.md does not exist.'
             $true | Should Be $true
             return
         }
 
-        $lines = Get-Content -LiteralPath $script:mitrePath
+        $lines = Get-Content -LiteralPath $mitrePath
         $tableRows = $lines | Where-Object {
             $_ -match '^\|\s*CTRL-\d+\s*\|'
         }

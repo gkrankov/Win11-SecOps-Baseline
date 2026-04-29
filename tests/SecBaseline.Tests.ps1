@@ -6,6 +6,10 @@
     Run with: Invoke-Pester .\tests\ -Output Detailed
 #>
 
+$script:RootPath   = Split-Path $PSScriptRoot -Parent
+$script:ConfigPath = Join-Path $script:RootPath 'config\baseline.json'
+$script:Config     = Get-Content -Raw $script:ConfigPath | ConvertFrom-Json
+
 function Get-FunctionDefinitionText {
     param(
         [Parameter(Mandatory)] [string] $ScriptPath,
@@ -90,12 +94,6 @@ function Get-ErrorMessage {
     throw 'Expected script block to throw, but it completed successfully.'
 }
 
-BeforeAll {
-    $script:RootPath   = Split-Path $PSScriptRoot -Parent
-    $script:ConfigPath = Join-Path $script:RootPath 'config\baseline.json'
-    $script:Config     = Get-Content -Raw $script:ConfigPath | ConvertFrom-Json
-}
-
 Describe 'baseline.json' {
     It 'loads without error' {
         $script:Config | Should Not BeNullOrEmpty
@@ -138,16 +136,15 @@ Describe 'Module scripts exist' {
 
 Describe 'Path validation helpers' {
     $pathScripts = @(
-        @{ Name = '02-posture-check'; Script = (Join-Path (Split-Path $PSScriptRoot -Parent) '02-posture-check.ps1') },
-        @{ Name = '03-drift-detector'; Script = (Join-Path (Split-Path $PSScriptRoot -Parent) '03-drift-detector.ps1') },
-        @{ Name = '05-dashboard-export'; Script = (Join-Path (Split-Path $PSScriptRoot -Parent) '05-dashboard-export.ps1') }
+        @{ Name = '02-posture-check'; Script = (Join-Path $script:RootPath '02-posture-check.ps1') },
+        @{ Name = '03-drift-detector'; Script = (Join-Path $script:RootPath '03-drift-detector.ps1') },
+        @{ Name = '05-dashboard-export'; Script = (Join-Path $script:RootPath '05-dashboard-export.ps1') }
     )
 
     It '<Name> rejects UNC paths' -TestCases $pathScripts {
         param($Name, $Script)
         $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
-        $module = $null
         try {
             $module = New-TestModuleFromFunctions -ModuleRoot $tempRoot -SourceScript $Script -FunctionNames @('Resolve-LocalPath')
             $message = Get-ErrorMessage {
@@ -164,7 +161,6 @@ Describe 'Path validation helpers' {
         param($Name, $Script)
         $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
-        $module = $null
         try {
             $module = New-TestModuleFromFunctions -ModuleRoot $tempRoot -SourceScript $Script -FunctionNames @('Resolve-LocalPath')
             $message = Get-ErrorMessage {
