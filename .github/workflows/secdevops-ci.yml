@@ -132,7 +132,7 @@ jobs:
           Write-Host "JSON validation passed for $($jsonFiles.Count) config files."
 
       - name: Run development gate script
-        shell: pwsh
+        shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
 
