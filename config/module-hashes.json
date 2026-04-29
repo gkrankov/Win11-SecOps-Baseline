@@ -1,5 +1,5 @@
 ﻿{
-    "generated":  "2026-04-29T14:11:57.0388747+02:00",
+    "generated":  "2026-04-29T14:14:40.7853445+02:00",
     "generatedBy":  "krank",
     "hashes":  {
                    "src/core/InputSanitization.ps1":  "674814C9687D1E7AA1C45085B3C9FEEA0B994AFAF2FBFA7FACF29901A99DD979",
@@ -10,6 +10,6 @@
                    "modules/Firewall/Set-FirewallBaseline.ps1":  "481A4BAF985DDD8955C888FE31C4EE183CB9FACAA69C5537631B10E7EB26716F",
                    "modules/NetworkHardening/Set-NetworkHardening.ps1":  "39824AD248F0F1538238A1C2D7E905D25917EDCF27265B963C6D32E7C5894426",
                    "modules/UserAccounts/Set-UserAccounts.ps1":  "56006F0B769D1AA27B1E3E9A808B36771E623E9230E5F028510FEE12362A4B03",
-                   "modules/WindowsDefender/Set-DefenderBaseline.ps1":  "8D3E948CDA76F2B33026443976276D5F25525985D32B02D809D8FBDE2D7573A8"
+                   "modules/WindowsDefender/Set-DefenderBaseline.ps1":  "4DDF19AE2716DCFECC8BF05700F712DB050A17D8FF3E69F66DE773D55233F072"
                }
 }

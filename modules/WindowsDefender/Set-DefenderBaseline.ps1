@@ -15,6 +15,39 @@ $ErrorActionPreference = 'Stop'
 $settings = $Config.WindowsDefender
 $results  = @{}
 
+function Get-DefenderServiceState {
+    param([Parameter(Mandatory)] [string[]] $Names)
+
+    $state = [ordered]@{}
+    foreach ($name in $Names) {
+        $svc = Get-Service -Name $name -ErrorAction SilentlyContinue
+        $state[$name] = if ($svc) { $svc.Status.ToString() } else { 'NotFound' }
+    }
+
+    return $state
+}
+
+function Start-DefenderServicesIfNeeded {
+    $serviceNames = @('WinDefend', 'WdNisSvc')
+
+    foreach ($serviceName in $serviceNames) {
+        $svc = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+        if ($null -eq $svc) {
+            continue
+        }
+
+        if ($svc.Status -ne [System.ServiceProcess.ServiceControllerStatus]::Running) {
+            try {
+                Start-Service -Name $serviceName -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to start service '$serviceName': $($_.Exception.Message)"
+            }
+        }
+    }
+
+    return (Get-DefenderServiceState -Names $serviceNames)
+}
+
 $allowedCloudLevels = @('Default', 'Moderate', 'High', 'HighPlus', 'ZeroTolerance', 0, 1, 2, 4, 6)
 if ($settings.CloudBlockLevel -notin $allowedCloudLevels) {
     throw "Unsupported CloudBlockLevel value: '$($settings.CloudBlockLevel)'"
@@ -50,11 +83,20 @@ $defenderArgs = @{
 }
 
 if ($PSCmdlet.ShouldProcess('Windows Defender', 'Apply Defender baseline')) {
+    $serviceState = Start-DefenderServicesIfNeeded
+    $results['DefenderServices'] = $serviceState
+
     try {
         Set-MpPreference @defenderArgs -ErrorAction Stop
         $results['DefenderPreferences'] = 'Applied'
     } catch {
-        $results['DefenderPreferences'] = "Failed: $($_.Exception.Message)"
+        $msg = $_.Exception.Message
+        $results['DefenderPreferences'] = "Failed: $msg"
+        if ($msg -match '0x800106ba') {
+            $serviceStateText = ($serviceState.GetEnumerator() | ForEach-Object { "{0}={1}" -f $_.Key, $_.Value }) -join '; '
+            throw "Set-MpPreference failed (0x800106ba). Defender service is unavailable or running in passive mode. Service state: $serviceStateText. If a third-party AV is installed, remove it or disable passive mode; then rerun baseline as Administrator."
+        }
+
         throw
     }
 } else {
