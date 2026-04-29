@@ -22,6 +22,11 @@ foreach ($profile in $settings.Profiles) {
     }
 
     if ($PSCmdlet.ShouldProcess($profile, 'Apply firewall baseline')) {
+        $notifyOnListen = 'False'
+        if ([bool] $settings.NotifyOnBlock) {
+            $notifyOnListen = 'True'
+        }
+
         $logAllowed = 'False'
         if ([bool] $settings.LogAllowed) {
             $logAllowed = 'True'
@@ -36,7 +41,7 @@ foreach ($profile in $settings.Profiles) {
             Set-NetFirewallProfile -Profile $profile `
                 -DefaultInboundAction  $settings.DefaultInboundAction `
                 -DefaultOutboundAction $settings.DefaultOutboundAction `
-                -NotifyOnListen        ([bool]$settings.NotifyOnBlock) `
+                -NotifyOnListen        $notifyOnListen `
                 -LogAllowed            $logAllowed `
                 -LogBlocked            $logBlocked `
                 -LogMaxSizeKilobytes   $settings.LogMaxSizeKilobytes `

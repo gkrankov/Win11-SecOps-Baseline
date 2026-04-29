@@ -113,4 +113,34 @@ if ($settings.MinimumTLSVersion -eq '1.2') {
     $results['LegacyTLS'] = if ($WhatIfPreference) { 'WhatIf' } else { 'Disabled' }
 }
 
+# Disable NTLMv1 — set LmCompatibilityLevel = 5 (NTLMv2 responses only)
+if ($settings.DisableNTLMv1) {
+    if ($PSCmdlet.ShouldProcess('LmCompatibilityLevel', 'Set to 5 (NTLMv2 only)')) {
+        try {
+            Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' `
+                -Name 'LmCompatibilityLevel' -Value 5 -Type DWord -Force -ErrorAction Stop
+            $results['NTLMv1'] = 'Disabled (LmCompatibilityLevel=5)'
+        } catch {
+            $results['NTLMv1'] = "Failed: $($_.Exception.Message)"
+            throw
+        }
+    } else { $results['NTLMv1'] = 'WhatIf' }
+}
+
+# Disable RC4 cipher
+if ($settings.DisableRC4) {
+    if ($PSCmdlet.ShouldProcess('RC4 128/128', 'Disable RC4 cipher')) {
+        try {
+            $rc4Path = 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\RC4 128/128'
+            if (-not (Test-Path -LiteralPath $rc4Path)) { New-Item -Path $rc4Path -Force -ErrorAction Stop | Out-Null }
+            Set-ItemProperty -Path $rc4Path -Name 'Enabled' -Value 0 -Type DWord -Force -ErrorAction Stop
+            Set-ItemProperty -Path $rc4Path -Name 'DisabledByDefault' -Value 1 -Type DWord -Force -ErrorAction Stop
+            $results['RC4'] = 'Disabled'
+        } catch {
+            $results['RC4'] = "Failed: $($_.Exception.Message)"
+            throw
+        }
+    } else { $results['RC4'] = 'WhatIf' }
+}
+
 return $results

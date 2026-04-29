@@ -143,7 +143,7 @@ function New-CheckResult {
 
 function Add-BaselineFindingIfNeeded {
     param(
-        [Parameter(Mandatory)] [System.Collections.Generic.List[object]] $Findings,
+        [Parameter(Mandatory)] [AllowEmptyCollection()] [System.Collections.Generic.List[object]] $Findings,
         [Parameter(Mandatory)] [string] $Category,
         [Parameter(Mandatory)] [string] $Setting,
         $ExpectedValue,
@@ -254,9 +254,9 @@ function Write-ScoreComparison {
 
 function Export-PostureReport {
     param(
-        [Parameter(Mandatory)] [System.Collections.Generic.List[object]] $Checks,
-        [Parameter(Mandatory)] [System.Collections.Generic.List[object]] $BaselineFindings,
-        [Parameter(Mandatory)] [System.Collections.Generic.List[object]] $ListeningPorts,
+        [Parameter(Mandatory)] [AllowEmptyCollection()] [System.Collections.Generic.List[object]] $Checks,
+        [Parameter(Mandatory)] [AllowEmptyCollection()] [System.Collections.Generic.List[object]] $BaselineFindings,
+        [Parameter(Mandatory)] [AllowEmptyCollection()] [System.Collections.Generic.List[object]] $ListeningPorts,
         [Parameter(Mandatory)] [string] $OutputPath,
         [Parameter(Mandatory)] [int] $Score,
         [Parameter(Mandatory)] $ScoreComparison

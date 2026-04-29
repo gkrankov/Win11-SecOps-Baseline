@@ -19,15 +19,16 @@ function Get-SecOpsRegValue {
 }
 
 function Get-SecOpsAuditPolicySubcategoryMap {
+    # Use locale-independent subcategory GUIDs — English names fail on non-English Windows
     return [ordered]@{
-        AuditLogonEvents       = 'Logon'
-        AuditAccountLogon      = 'Credential Validation'
-        AuditPrivilegeUse      = 'Sensitive Privilege Use'
-        AuditPolicyChange      = 'Audit Policy Change'
-        AuditObjectAccess      = 'File System'
-        AuditProcessTracking   = 'Process Creation'
-        AuditSystemEvents      = 'Security State Change'
-        AuditAccountManagement = 'User Account Management'
+        AuditLogonEvents       = '{0CCE9215-69AE-11D9-BED3-505054503030}'
+        AuditAccountLogon      = '{0CCE923F-69AE-11D9-BED3-505054503030}'
+        AuditPrivilegeUse      = '{0CCE9228-69AE-11D9-BED3-505054503030}'
+        AuditPolicyChange      = '{0CCE922F-69AE-11D9-BED3-505054503030}'
+        AuditObjectAccess      = '{0CCE9217-69AE-11D9-BED3-505054503030}'
+        AuditProcessTracking   = '{0CCE922B-69AE-11D9-BED3-505054503030}'
+        AuditSystemEvents      = '{0CCE9210-69AE-11D9-BED3-505054503030}'
+        AuditAccountManagement = '{0CCE9235-69AE-11D9-BED3-505054503030}'
     }
 }
 
@@ -67,9 +68,10 @@ function ConvertFrom-SecOpsAuditPolicyText {
 function Get-SecOpsAuditPolicySetting {
     param([Parameter(Mandatory)] [string] $Subcategory)
 
+    # Subcategory may be a GUID ({...}) or a name — pass as-is; caller supplies GUIDs
     $output = & auditpol.exe /get /subcategory:"$Subcategory" 2>$null
     if ($LASTEXITCODE -ne 0) {
-        throw "auditpol.exe failed for subcategory '$Subcategory'."
+        throw "auditpol.exe failed for subcategory '$Subcategory'. Ensure the value is a locale-independent GUID."
     }
 
     $text = ($output -join [Environment]::NewLine)
@@ -319,7 +321,7 @@ function Get-SecOpsNetworkHardeningState {
         DisableSMBv1      = (-not ([bool] (Get-SmbServerConfiguration -ErrorAction Stop).EnableSMB1Protocol))
         DisableLLMNR      = ((Get-SecOpsRegValue -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient' -Name 'EnableMulticast' -Default $null) -eq 0)
         DisableNetBIOS    = Test-SecOpsAllNetBiosDisabled
-        DisableWPAD       = ($service -and $service.StartMode -eq 'Disabled')
+        DisableWPAD       = (($service -and $service.StartMode -eq 'Disabled') -or ((Get-SecOpsRegValue -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\Internet Settings' -Name 'AutoDetect' -Default $null) -eq 0))
         MinimumTLSVersion = $minimumTlsVersion
         DisableRC4        = (($rc4Enabled -eq 0) -and ($rc4DisabledByDefault -eq 1))
         DisableNTLMv1     = ([int] $lmCompatibilityLevel -ge 3)
