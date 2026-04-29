@@ -360,9 +360,13 @@ $ntlmStatus = if ($currentNetworkHardening.DisableNTLMv1 -eq $baseline.NetworkHa
 $checks.Add((New-CheckResult -Name 'NTLMv2 Enforcement' -Status $ntlmStatus -Weight 10 -Detail ("Expected NTLMv1 disabled = {0}; current = {1}" -f `
     $baseline.NetworkHardening.DisableNTLMv1, $currentNetworkHardening.DisableNTLMv1)))
 
-$ps2Feature = Get-WindowsOptionalFeature -Online -FeatureName 'MicrosoftWindowsPowerShellV2Root' -ErrorAction SilentlyContinue
-$ps2Installed = ($ps2Feature -and $ps2Feature.State -eq 'Enabled')
-$ps2Status = if (-not $ps2Installed) { 'PASS' } else { 'FAIL' }
+try {
+    $ps2Feature = Get-WindowsOptionalFeature -Online -FeatureName 'MicrosoftWindowsPowerShellV2Root' -ErrorAction Stop
+    $ps2Installed = ($ps2Feature -and $ps2Feature.State -eq 'Enabled')
+} catch {
+    $ps2Installed = $null  # Unknown — requires elevation
+}
+$ps2Status = if ($null -eq $ps2Installed) { 'WARNING' } elseif (-not $ps2Installed) { 'PASS' } else { 'FAIL' }
 $checks.Add((New-CheckResult -Name 'PowerShell 2.0' -Status $ps2Status -Weight 10 -Detail ("PowerShell 2.0 installed = {0}" -f $ps2Installed)))
 
 $defenderDrifts = New-Object System.Collections.Generic.List[string]

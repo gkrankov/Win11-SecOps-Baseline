@@ -69,9 +69,15 @@ function Get-SecOpsAuditPolicySetting {
     param([Parameter(Mandatory)] [string] $Subcategory)
 
     # Subcategory may be a GUID ({...}) or a name — pass as-is; caller supplies GUIDs
+    # Locally suppress NativeCommandError so non-elevated callers get 'Unknown' rather than crash
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = 'SilentlyContinue'
     $output = & auditpol.exe /get /subcategory:"$Subcategory" 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        throw "auditpol.exe failed for subcategory '$Subcategory'. Ensure the value is a locale-independent GUID."
+    $auditExitCode = $LASTEXITCODE
+    $ErrorActionPreference = $prevEAP
+    if ($auditExitCode -ne 0) {
+        Write-Verbose "auditpol.exe failed for subcategory '$Subcategory' (requires elevation or invalid GUID)."
+        return 'Unknown'
     }
 
     $text = ($output -join [Environment]::NewLine)
@@ -160,9 +166,15 @@ function Get-SecOpsSecurityPolicyMap {
     } until ($reserved)
 
     try {
-        & secedit.exe /export /cfg $tempPath /quiet | Out-Null
-        if ($LASTEXITCODE -ne 0 -or -not (Test-Path $tempPath)) {
-            throw 'secedit.exe export failed.'
+        $prevEAP = $ErrorActionPreference
+        $ErrorActionPreference = 'SilentlyContinue'
+        & secedit.exe /export /cfg $tempPath /quiet 2>$null | Out-Null
+        $seceditExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $prevEAP
+        if ($seceditExitCode -ne 0 -or -not (Test-Path $tempPath)) {
+            Write-Verbose 'secedit.exe export failed (requires elevation); security policy checks will report Unknown.'
+            $script:SecEditPolicyCache = @{}
+            return $script:SecEditPolicyCache
         }
 
         $policyMap = @{}
@@ -329,33 +341,32 @@ function Get-SecOpsNetworkHardeningState {
 }
 
 function Get-SecOpsBitLockerState {
-    $volume = Get-BitLockerVolume -MountPoint 'C:' -ErrorAction SilentlyContinue
-    $tpm = Get-Tpm -ErrorAction SilentlyContinue
-    $tpmPresent = $false
-    $tpmEnabled = $false
-
-    if ($tpm) {
-        $tpmPresent = [bool] $tpm.TpmPresent
-        $tpmEnabled = [bool] $tpm.TpmEnabled
+    $defaultState = [ordered]@{
+        SystemDriveEncrypted = $false
+        EncryptionMethod     = 'Unknown'
+        ProtectionStatus     = 'Unknown'
+        TpmPresent           = $false
+        TpmEnabled           = $false
     }
 
-    if (-not $volume) {
-        return [ordered]@{
-            SystemDriveEncrypted = $false
-            EncryptionMethod     = 'Unknown'
-            ProtectionStatus     = 'Unknown'
-            TpmPresent           = $tpmPresent
-            TpmEnabled           = $tpmEnabled
+    try {
+        $tpm = Get-Tpm -ErrorAction SilentlyContinue
+        if ($tpm) {
+            $defaultState.TpmPresent = [bool] $tpm.TpmPresent
+            $defaultState.TpmEnabled = [bool] $tpm.TpmEnabled
         }
+
+        $volume = Get-BitLockerVolume -MountPoint 'C:' -ErrorAction SilentlyContinue
+        if ($volume) {
+            $defaultState.SystemDriveEncrypted = ($volume.ProtectionStatus -eq 'On')
+            $defaultState.EncryptionMethod     = $volume.EncryptionMethod.ToString()
+            $defaultState.ProtectionStatus     = $volume.ProtectionStatus.ToString()
+        }
+    } catch {
+        Write-Verbose "Get-SecOpsBitLockerState: $_"
     }
 
-    return [ordered]@{
-        SystemDriveEncrypted = ($volume.ProtectionStatus -eq 'On')
-        EncryptionMethod     = $volume.EncryptionMethod.ToString()
-        ProtectionStatus     = $volume.ProtectionStatus.ToString()
-        TpmPresent           = $tpmPresent
-        TpmEnabled           = $tpmEnabled
-    }
+    return $defaultState
 }
 
 function Get-SecOpsSecureBootState {
