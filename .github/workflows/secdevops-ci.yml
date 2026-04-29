@@ -12,6 +12,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   validate-security-baseline:
     name: Validate PowerShell Project
@@ -135,6 +138,10 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
+
+          if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -eq [version]'3.4.0' })) {
+            Install-Module -Name Pester -RequiredVersion 3.4.0 -Scope CurrentUser -Force -SkipPublisherCheck
+          }
 
           if ('${{ github.event_name }}' -eq 'pull_request') {
             Write-Host 'Running developer gate in PR mode (integrity check skipped).'

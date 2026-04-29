@@ -116,7 +116,12 @@ if (-not $SkipTests) {
         [Environment]::Exit($exitCode)
     }
 
-    Import-Module Pester -ErrorAction Stop
+    $pesterModule = Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -eq [version]'3.4.0' } | Select-Object -First 1
+    if (-not $pesterModule) {
+        throw 'Required Pester version 3.4.0 was not found. Install it with: Install-Module Pester -RequiredVersion 3.4.0 -Scope CurrentUser -Force -SkipPublisherCheck'
+    }
+
+    Import-Module Pester -RequiredVersion 3.4.0 -ErrorAction Stop
     $testResult = Invoke-Pester -Path $resolvedTestPath.Path -PassThru
     if ($null -eq $testResult) {
         throw 'Pester did not return a test result object. Ensure Pester is installed correctly.'
