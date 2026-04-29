@@ -15,30 +15,32 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-. (Join-Path (Split-Path $PSScriptRoot -Parent) '..\src\core\RunContext.ps1')
+BeforeAll {
+    . (Join-Path (Split-Path $PSScriptRoot -Parent) '..\src\core\RunContext.ps1')
 
-$projectRoot = (Resolve-Path (Join-Path (Split-Path $PSScriptRoot -Parent) '..')).Path
-$entryScripts = @(
-    '01-hardening.ps1',
-    '02-posture-check.ps1',
-    '03-drift-detector.ps1',
-    '04-tools-setup.ps1',
-    '05-dashboard-export.ps1',
-    'Invoke-SecBaseline.ps1',
-    'Get-SecurityCheckpoint.ps1'
-)
+    $script:projectRoot = (Resolve-Path (Join-Path (Split-Path $PSScriptRoot -Parent) '..')).Path
+    $script:entryScripts = @(
+        '01-hardening.ps1',
+        '02-posture-check.ps1',
+        '03-drift-detector.ps1',
+        '04-tools-setup.ps1',
+        '05-dashboard-export.ps1',
+        'Invoke-SecBaseline.ps1',
+        'Get-SecurityCheckpoint.ps1'
+    )
+}
 
 Describe 'Entry script parse and hygiene' {
     It 'all required entry scripts exist' {
-        foreach ($scriptName in $entryScripts) {
-            $scriptPath = Join-Path $projectRoot $scriptName
+        foreach ($scriptName in $script:entryScripts) {
+            $scriptPath = Join-Path $script:projectRoot $scriptName
             (Test-Path -LiteralPath $scriptPath -PathType Leaf) | Should Be $true
         }
     }
 
     It 'all required entry scripts parse without syntax errors' {
-        foreach ($scriptName in $entryScripts) {
-            $scriptPath = Join-Path $projectRoot $scriptName
+        foreach ($scriptName in $script:entryScripts) {
+            $scriptPath = Join-Path $script:projectRoot $scriptName
             $tokens = $null
             $errors = $null
             [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$errors) | Out-Null
@@ -47,16 +49,16 @@ Describe 'Entry script parse and hygiene' {
     }
 
     It 'all required entry scripts include #Requires -Version 5.1' {
-        foreach ($scriptName in $entryScripts) {
-            $scriptPath = Join-Path $projectRoot $scriptName
+        foreach ($scriptName in $script:entryScripts) {
+            $scriptPath = Join-Path $script:projectRoot $scriptName
             $content = Get-Content -LiteralPath $scriptPath -Raw
             ($content -match '#Requires\s+-Version\s+5\.1') | Should Be $true
         }
     }
 
     It 'all required entry scripts avoid raw Write-Host without ForegroundColor' {
-        foreach ($scriptName in $entryScripts) {
-            $scriptPath = Join-Path $projectRoot $scriptName
+        foreach ($scriptName in $script:entryScripts) {
+            $scriptPath = Join-Path $script:projectRoot $scriptName
             $lines = Get-Content -LiteralPath $scriptPath
             $offending = @()
 

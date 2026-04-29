@@ -15,18 +15,20 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-. (Join-Path (Split-Path $PSScriptRoot -Parent) '..\src\core\InputSanitization.ps1')
+BeforeAll {
+    . (Join-Path (Split-Path $PSScriptRoot -Parent) '..\src\core\InputSanitization.ps1')
 
-function Get-TestErrorMessage {
-    param([Parameter(Mandatory)] [scriptblock] $ScriptBlock)
+    function Get-TestErrorMessage {
+        param([Parameter(Mandatory)] [scriptblock] $ScriptBlock)
 
-    try {
-        & $ScriptBlock
-    } catch {
-        return $_.Exception.Message
+        try {
+            & $ScriptBlock
+        } catch {
+            return $_.Exception.Message
+        }
+
+        throw 'Expected test scriptblock to throw, but it completed successfully.'
     }
-
-    throw 'Expected test scriptblock to throw, but it completed successfully.'
 }
 
 Describe 'Invoke-SanitizeConfigValue' {
