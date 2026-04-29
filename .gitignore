@@ -11,3 +11,8 @@ Desktop.ini
 # Local SSH key artifacts (never commit)
 win11secops
 win11secops.pub
+
+# Runtime-generated state - never commit or expose publicly
+config/security-checkpoint.json
+config/module-hashes.json
+artifacts/
