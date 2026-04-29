@@ -48,6 +48,30 @@ function Start-DefenderServicesIfNeeded {
     return (Get-DefenderServiceState -Names $serviceNames)
 }
 
+function Get-ActiveThirdPartyAvServices {
+    $servicePatterns = @(
+        'Sophos',
+        'CrowdStrike',
+        'Sentinel',
+        'Trend Micro',
+        'Symantec',
+        'McAfee',
+        'Kaspersky',
+        'Bitdefender',
+        'ESET',
+        'Avast',
+        'AVG'
+    )
+
+    $regexPattern = ($servicePatterns | ForEach-Object { [Regex]::Escape($_) }) -join '|'
+    return @(Get-Service -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.Status -eq [System.ServiceProcess.ServiceControllerStatus]::Running -and
+            ($_.Name -match $regexPattern -or $_.DisplayName -match $regexPattern)
+        } |
+        Select-Object -Property Name, DisplayName, Status)
+}
+
 $allowedCloudLevels = @('Default', 'Moderate', 'High', 'HighPlus', 'ZeroTolerance', 0, 1, 2, 4, 6)
 if ($settings.CloudBlockLevel -notin $allowedCloudLevels) {
     throw "Unsupported CloudBlockLevel value: '$($settings.CloudBlockLevel)'"
@@ -80,6 +104,16 @@ $defenderArgs = @{
     EnableNetworkProtection            = $networkProtectionValue
     PUAProtection                      = $puaProtection
     EnableControlledFolderAccess       = $controlledFolderAccessValue
+}
+
+$activeThirdPartyAv = Get-ActiveThirdPartyAvServices
+if ($activeThirdPartyAv.Count -gt 0) {
+    $serviceSummary = $activeThirdPartyAv | ForEach-Object { $_.DisplayName }
+    $results['ThirdPartyAV'] = $serviceSummary
+    $results['DefenderPreferences'] = 'Skipped'
+    $results['TamperProtection'] = 'Skipped'
+    $results['Message'] = 'Third-party AV is active; skipping Defender policy changes to avoid passive-mode failures.'
+    return $results
 }
 
 if ($PSCmdlet.ShouldProcess('Windows Defender', 'Apply Defender baseline')) {
