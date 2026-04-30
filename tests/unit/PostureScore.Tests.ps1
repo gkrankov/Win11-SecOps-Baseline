@@ -1,5 +1,5 @@
 # PostureScore.Tests.ps1
-# Generated scaffold — logic bodies require authoring
+# Generated scaffold - logic bodies require authoring
 # Pester 3.4 compatible
 
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -24,7 +24,7 @@ Describe "Posture Score Calculation" {
         }
     }
 
-    Context "Edge case — zero controls evaluated" {
+    Context "Edge case - zero controls evaluated" {
         It "does not throw divide-by-zero" {
             # NEEDS AUTHORING: pass empty control set
             # Assert: no terminating error thrown
