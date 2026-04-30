@@ -3,7 +3,7 @@
 <#
 .SYNOPSIS
     Captures a point-in-time Windows 11 security checkpoint and writes it to
-    config\security-checkpoint.json.
+    state\security-checkpoint.json.
 
 .DESCRIPTION
     Reads live system state for:
@@ -19,7 +19,7 @@
     summary. Use -WhatIf to preview without writing the file.
 
 .PARAMETER OutputPath
-    Path to write the checkpoint JSON. Defaults to config\security-checkpoint.json
+    Path to write the checkpoint JSON. Defaults to state\security-checkpoint.json
     relative to this script's directory.
 
 .EXAMPLE
@@ -35,7 +35,7 @@ param (
         if ([System.IO.Path]::GetExtension($fullPath).ToLowerInvariant() -ne '.json') { throw 'OutputPath must have a .json extension.' }
         $true
     })]
-    [string] $OutputPath = (Join-Path $PSScriptRoot 'config\security-checkpoint.json')
+    [string] $OutputPath = (Join-Path $PSScriptRoot 'state\security-checkpoint.json')
 )
 
 Set-StrictMode -Version Latest

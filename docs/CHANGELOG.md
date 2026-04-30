@@ -4,6 +4,12 @@ All notable changes to Win11-SecOps-Baseline will be documented here.
 
 ## [Unreleased]
 
+### Required - Operational Validation
+- [ ] Complete first validated hardening run in isolated VM
+- [ ] Commit before/after posture scores to docs/evidence/
+- [ ] Commit HTML evidence report to docs/evidence/
+- Reference: Finding #15 - no end-to-end run validated as of v0.2.0
+
 ## [0.2.0] - 2026-04-28
 
 ### Added
@@ -34,3 +40,12 @@ All notable changes to Win11-SecOps-Baseline will be documented here.
 - Timestamped JSON report output
 - WhatIf / dry-run support across all modules
 - Pester test stubs
+
+### Backlog — Pester 5 Migration
+- Current pin: Pester 3.4.0 (EOL since Pester 4, 2017)
+- Blocker: Pester 3.4 `Should Be` syntax vs Pester 5 `Should -Be`
+- Migration path:
+	1. Add Pester 5 compatibility shim or rewrite assertions
+	2. Remove eviction block from CI workflow
+	3. Target: before v1.0.0 release
+- Tracking issue: open a GitHub Issue tagged `tech-debt`

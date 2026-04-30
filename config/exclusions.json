@@ -2,5 +2,28 @@
   "_comment": "Add hostnames or setting keys to skip during a baseline run.",
   "Hosts":       [],
   "SkipModules": [],
-  "SkipSettings": []
+  "SkipSettings": [],
+  "Exclusions": [
+    {
+      "ControlId": "CIS-8.x",
+      "Module": "WindowsDefender",
+      "Reason": "Third-party AV active: Sophos",
+      "DisplayText": "Excluded (Third-party AV: Sophos)",
+      "ReviewDate": "2026-10-01"
+    },
+    {
+      "ControlId": "CIS-18.x-BitLocker",
+      "Module": "WindowsDefender",
+      "Reason": "No TPM hardware on dev machine",
+      "DisplayText": "Excluded (No TPM: dev machine only)",
+      "ReviewDate": "2026-10-01"
+    },
+    {
+      "ControlId": "SecureBoot",
+      "Module": "Firmware",
+      "Reason": "Firmware setting not runtime-configurable",
+      "DisplayText": "Excluded (Firmware: not runtime-configurable)",
+      "ReviewDate": "2026-10-01"
+    }
+  ]
 }
