@@ -7,7 +7,7 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $root = Split-Path -Parent (Split-Path -Parent $here)
 $orchestrator = Join-Path $root "Invoke-SecBaseline.ps1"
 
-Describe "Orchestrator Pipeline — Integration" {
+Describe "Orchestrator Pipeline - Integration" {
 
     Context "Dry-run invocation" {
         It "Invoke-SecBaseline.ps1 exists at repo root" {
