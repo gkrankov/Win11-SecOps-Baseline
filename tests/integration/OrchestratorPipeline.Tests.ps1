@@ -28,7 +28,7 @@ Describe "Orchestrator Pipeline - Integration" {
             $isElevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
             if (-not $isElevated) {
                 Write-Host "Skipping WhatIf invocation test in non-elevated session." -ForegroundColor DarkYellow
-                return
+                Set-TestInconclusive -Message "WhatIf invocation test requires an elevated session."
             }
 
             { & $orchestrator -WhatIf -SkipIntegrityCheck -ErrorAction Stop } | Should Not Throw
