@@ -1,6 +1,6 @@
 # Hardening Evidence
 
-This directory contains before/after posture evidence 
+This directory contains before/after posture evidence
 from validated VM hardening runs.
 
 ## Required Before Production Claim

@@ -62,9 +62,19 @@ $script:ModuleScriptMap = @{
 # ── Load config ──────────────────────────────────────────────────────────────
 $config = Get-Content -Raw $script:ConfigPath | ConvertFrom-Json
 
+# ── Load exclusions ───────────────────────────────────────────────────────────
+$exclusionsPath = Join-Path $script:RootPath 'config\exclusions.json'
+$script:SkipModules = @()
+if (Test-Path -LiteralPath $exclusionsPath -PathType Leaf) {
+    $exclusions = Get-Content -Raw $exclusionsPath | ConvertFrom-Json
+    if ($exclusions.SkipModules) {
+        $script:SkipModules = @($exclusions.SkipModules)
+    }
+}
+
 # ── Ensure report directory exists ───────────────────────────────────────────
 if (-not (Test-Path $script:ReportDir)) {
-    if (-not $WhatIfPreference) {
+    if ($PSCmdlet.ShouldProcess($script:ReportDir, 'Create report directory')) {
         New-Item -ItemType Directory -Path $script:ReportDir | Out-Null
     } else {
         Write-Host "WhatIf: would create report directory $script:ReportDir" -ForegroundColor DarkYellow
@@ -101,6 +111,12 @@ foreach ($moduleName in $Modules) {
     if ($moduleName -notin $script:AllowedModules) {
         Write-Warning "Invalid module requested: $moduleName"
         $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'Skipped'; Message = 'Invalid module name' })
+        continue
+    }
+
+    if ($moduleName -in $script:SkipModules) {
+        Write-Warning "Module $moduleName is excluded via exclusions.json"
+        $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'Skipped'; Message = 'Excluded in exclusions.json' })
         continue
     }
 
@@ -145,7 +161,7 @@ $report = [PSCustomObject]@{
     WhatIf       = [bool]$WhatIfPreference
     Results      = $results
 }
-if (-not $WhatIfPreference) {
+if ($PSCmdlet.ShouldProcess($reportPath, 'Write baseline report')) {
     $report | ConvertTo-Json -Depth 10 | Set-Content -Path $reportPath -Encoding UTF8
     Write-Host "`nOK Baseline run complete. Report: $reportPath" -ForegroundColor Green
 } else {
