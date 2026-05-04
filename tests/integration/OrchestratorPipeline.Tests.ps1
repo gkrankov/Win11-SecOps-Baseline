@@ -15,9 +15,10 @@ Describe "Orchestrator Pipeline - Integration" {
         }
 
         It "Script parses without syntax errors" {
+            $tokens = $null
             $errors = $null
             $null = [System.Management.Automation.Language.Parser]::ParseFile(
-                $orchestrator, [ref]$null, [ref]$errors
+                $orchestrator, [ref]$tokens, [ref]$errors
             )
             $errors.Count | Should Be 0
         }

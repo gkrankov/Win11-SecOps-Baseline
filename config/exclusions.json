@@ -1,5 +1,5 @@
 {
-  "_comment": "Add hostnames or setting keys to skip during a baseline run.",
+  "_comment": "Runtime exclusions for Invoke-SecBaseline.ps1. SkipModules: module names omitted from the run. SkipSettings/Hosts: reserved for future use. Exclusions: audit-trail documentation only — not evaluated at runtime.",
   "Hosts":       [],
   "SkipModules": [],
   "SkipSettings": [],
