@@ -237,7 +237,7 @@ Describe 'HTML escaping' {
         $script:DashboardModule = New-TestModuleFromFunctions `
             -ModuleRoot $script:DashboardTempRoot `
             -SourceScript (Join-Path $script:RootPath '05-dashboard-export.ps1') `
-            -FunctionNames @('Escape-Html')
+            -FunctionNames @('ConvertTo-EscapedHtml')
     }
 
     AfterEach {
@@ -246,11 +246,11 @@ Describe 'HTML escaping' {
     }
 
     It 'encodes HTML-significant characters' {
-        $encoded = & $script:DashboardModule { Escape-Html -Value '<script>"x" & y</script>' }
+        $encoded = & $script:DashboardModule { ConvertTo-EscapedHtml -Value '<script>"x" & y</script>' }
         $encoded | Should Be '&lt;script&gt;&quot;x&quot; &amp; y&lt;/script&gt;'
     }
 
     It 'returns N/A for null input' {
-        (& $script:DashboardModule { Escape-Html -Value $null }) | Should Be 'N/A'
+        (& $script:DashboardModule { ConvertTo-EscapedHtml -Value $null }) | Should Be 'N/A'
     }
 }

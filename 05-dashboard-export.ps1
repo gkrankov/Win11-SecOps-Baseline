@@ -111,7 +111,7 @@ function ConvertTo-StatusClass {
     }
 }
 
-function Escape-Html {
+function ConvertTo-EscapedHtml {
   param([AllowNull()] $Value)
 
   if ($null -eq $Value) {
@@ -233,10 +233,10 @@ function New-DashboardHtml {
     $checkRows = New-Object System.Collections.Generic.List[string]
     foreach ($check in $Data.Checks) {
         $statusClass = ConvertTo-StatusClass -Status $check.Status
-        $safeCheck = Escape-Html -Value $check.Check
-        $safeStatus = Escape-Html -Value $check.Status
-        $safePoints = Escape-Html -Value ([string]$check.Points)
-        $safeDetail = Escape-Html -Value $check.Detail
+        $safeCheck = ConvertTo-EscapedHtml -Value $check.Check
+        $safeStatus = ConvertTo-EscapedHtml -Value $check.Status
+        $safePoints = ConvertTo-EscapedHtml -Value ([string]$check.Points)
+        $safeDetail = ConvertTo-EscapedHtml -Value $check.Detail
         $checkRows.Add(@"
         <tr>
           <td>$safeCheck</td>
@@ -253,18 +253,18 @@ function New-DashboardHtml {
         $riskItems.Add('<li>No failed checks in latest scan.</li>')
     } else {
         foreach ($risk in $topRisks) {
-        $safeRiskCheck = Escape-Html -Value $risk.Check
-        $safeRiskDetail = Escape-Html -Value $risk.Detail
+        $safeRiskCheck = ConvertTo-EscapedHtml -Value $risk.Check
+        $safeRiskDetail = ConvertTo-EscapedHtml -Value $risk.Detail
         $riskItems.Add("<li><strong>$safeRiskCheck</strong> - $safeRiskDetail</li>")
         }
     }
 
     $generatedAt = Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz'
-    $safeGenerated = Escape-Html -Value ([string]$Data.Generated)
-    $safeScore = Escape-Html -Value ([string]$Data.Score)
-    $safeTrendLabel = Escape-Html -Value $trendMeta.Label
-    $safeTrendDelta = Escape-Html -Value ([string]$trendMeta.Delta)
-    $safeGeneratedAt = Escape-Html -Value $generatedAt
+    $safeGenerated = ConvertTo-EscapedHtml -Value ([string]$Data.Generated)
+    $safeScore = ConvertTo-EscapedHtml -Value ([string]$Data.Score)
+    $safeTrendLabel = ConvertTo-EscapedHtml -Value $trendMeta.Label
+    $safeTrendDelta = ConvertTo-EscapedHtml -Value ([string]$trendMeta.Delta)
+    $safeGeneratedAt = ConvertTo-EscapedHtml -Value $generatedAt
 @"
 <!DOCTYPE html>
 <html lang="en">
