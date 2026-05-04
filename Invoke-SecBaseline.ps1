@@ -15,6 +15,10 @@
 .PARAMETER ReportOnly
     Load and display the most recent report without running any modules.
 
+.PARAMETER WhatIf
+    Shows what would happen if the script runs. This switch is supported via
+    CmdletBinding with SupportsShouldProcess.
+
 .EXAMPLE
     .\Invoke-SecBaseline.ps1
     .\Invoke-SecBaseline.ps1 -Modules Firewall, WindowsDefender
