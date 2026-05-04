@@ -60,7 +60,11 @@ $config = Get-Content -Raw $script:ConfigPath | ConvertFrom-Json
 
 # ── Ensure report directory exists ───────────────────────────────────────────
 if (-not (Test-Path $script:ReportDir)) {
-    New-Item -ItemType Directory -Path $script:ReportDir | Out-Null
+    if (-not $WhatIfPreference) {
+        New-Item -ItemType Directory -Path $script:ReportDir | Out-Null
+    } else {
+        Write-Host "WhatIf: would create report directory $script:ReportDir" -ForegroundColor DarkYellow
+    }
 }
 
 # ── ReportOnly shortcut ───────────────────────────────────────────────────────
@@ -137,9 +141,13 @@ $report = [PSCustomObject]@{
     WhatIf       = [bool]$WhatIfPreference
     Results      = $results
 }
-$report | ConvertTo-Json -Depth 10 | Set-Content -Path $reportPath -Encoding UTF8
+if (-not $WhatIfPreference) {
+    $report | ConvertTo-Json -Depth 10 | Set-Content -Path $reportPath -Encoding UTF8
+    Write-Host "`nOK Baseline run complete. Report: $reportPath" -ForegroundColor Green
+} else {
+    Write-Host "`nWhatIf: baseline run complete. Report would be written to: $reportPath" -ForegroundColor DarkYellow
+}
 
-Write-Host "`nOK Baseline run complete. Report: $reportPath" -ForegroundColor Green
 $results | Format-Table -AutoSize
 
 } finally {
