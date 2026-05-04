@@ -60,9 +60,11 @@ Describe "Orchestrator exclusions.json SkipModules" {
                 $targetModuleScript = Join-Path $targetModuleDir $moduleFileMap[$moduleName]
 
                 if ($moduleName -eq 'AuditPolicies') {
-                    # Writes a sentinel so we can assert it was NOT called
+                    # Writes a sentinel so we can assert it was NOT called.
+                    # Pass the sentinel path as a parameter to avoid embedding it in a string literal.
+                    $sentinelEscaped = $sentinel -replace "'", "''"
                     Set-Content -Path $targetModuleScript `
-                        -Value "param([object]`$Config, [switch]`$WhatIf) Set-Content -Path '$sentinel' -Value 'invoked' -Encoding UTF8" `
+                        -Value "param([object]`$Config, [switch]`$WhatIf, [string]`$SentinelPath = '$sentinelEscaped') Set-Content -Path `$SentinelPath -Value 'invoked' -Encoding UTF8" `
                         -Encoding UTF8
                 } else {
                     Set-Content -Path $targetModuleScript `
@@ -73,7 +75,7 @@ Describe "Orchestrator exclusions.json SkipModules" {
 
             # Copy orchestrator, stripping the elevation requirement for test execution
             $orchestratorContent = Get-Content (Join-Path $root 'Invoke-SecBaseline.ps1') -Raw
-            $orchestratorContent = $orchestratorContent -replace '(?m)^#Requires -RunAsAdministrator\r?\n', ''
+            $orchestratorContent = $orchestratorContent -replace '(?m)^#Requires -RunAsAdministrator[\r\n]+', ''
             $orchestratorPath = Join-Path $tempRoot 'Invoke-SecBaseline.ps1'
             Set-Content -Path $orchestratorPath -Value $orchestratorContent -Encoding UTF8
 
