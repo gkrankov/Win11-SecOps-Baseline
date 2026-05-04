@@ -12,9 +12,6 @@
     Comma-separated list of modules to run. Defaults to all modules.
     Valid values: AuditPolicies, Firewall, UserAccounts, WindowsDefender, NetworkHardening
 
-.PARAMETER WhatIf
-    Simulate changes without applying them.
-
 .PARAMETER ReportOnly
     Load and display the most recent report without running any modules.
 
