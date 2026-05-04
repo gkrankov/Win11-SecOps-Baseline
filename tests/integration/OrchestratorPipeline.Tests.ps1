@@ -23,10 +23,9 @@ Describe "Orchestrator Pipeline - Integration" {
         }
 
         It "WhatIf invocation completes without terminating error" {
-            # NEEDS AUTHORING:
-            # Call Invoke-SecBaseline.ps1 -WhatIf
-            # Assert: no throw, exit code 0
-            $true | Should Be $true
+            # ShouldProcess gate emits 'WhatIf: would apply module ...' and returns
+            # a result object with Status='WhatIf' — no module scripts are executed.
+            { & $orchestrator -WhatIf -ErrorAction Stop } | Should Not Throw
         }
     }
 }

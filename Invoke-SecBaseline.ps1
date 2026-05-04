@@ -113,13 +113,18 @@ foreach ($moduleName in $Modules) {
         continue
     }
 
-    Write-Host "▶ Running module: $moduleName" -ForegroundColor Cyan
-    try {
-        $moduleResult = & $resolvedScriptPath -Config $config -WhatIf:$WhatIfPreference
-        $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'Pass'; Detail = $moduleResult })
-    } catch {
-        Write-Warning "Module $moduleName failed: $_"
-        $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'Fail'; Message = $_.Exception.Message })
+    if ($PSCmdlet.ShouldProcess($moduleName, 'Apply security baseline module')) {
+        Write-Host "▶ Running module: $moduleName" -ForegroundColor Cyan
+        try {
+            $moduleResult = & $resolvedScriptPath -Config $config -WhatIf:$WhatIfPreference
+            $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'Pass'; Detail = $moduleResult })
+        } catch {
+            Write-Warning "Module $moduleName failed: $_"
+            $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'Fail'; Message = $_.Exception.Message })
+        }
+    } else {
+        Write-Host "  WhatIf: would apply module $moduleName" -ForegroundColor DarkYellow
+        $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'WhatIf'; Message = 'Skipped: WhatIf mode' })
     }
 }
 
