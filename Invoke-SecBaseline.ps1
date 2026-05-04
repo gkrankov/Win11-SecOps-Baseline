@@ -12,11 +12,12 @@
     Comma-separated list of modules to run. Defaults to all modules.
     Valid values: AuditPolicies, Firewall, UserAccounts, WindowsDefender, NetworkHardening
 
-.PARAMETER WhatIf
-    Simulate changes without applying them.
-
 .PARAMETER ReportOnly
     Load and display the most recent report without running any modules.
+
+.PARAMETER WhatIf
+    Shows what would happen if the script runs. This switch is supported via
+    CmdletBinding with SupportsShouldProcess.
 
 .EXAMPLE
     .\Invoke-SecBaseline.ps1
@@ -61,9 +62,23 @@ $script:ModuleScriptMap = @{
 # ── Load config ──────────────────────────────────────────────────────────────
 $config = Get-Content -Raw $script:ConfigPath | ConvertFrom-Json
 
+# ── Load exclusions ───────────────────────────────────────────────────────────
+$exclusionsPath = Join-Path $script:RootPath 'config\exclusions.json'
+$script:SkipModules = @()
+if (Test-Path -LiteralPath $exclusionsPath -PathType Leaf) {
+    $exclusions = Get-Content -Raw $exclusionsPath | ConvertFrom-Json
+    if ($exclusions.SkipModules) {
+        $script:SkipModules = @($exclusions.SkipModules)
+    }
+}
+
 # ── Ensure report directory exists ───────────────────────────────────────────
 if (-not (Test-Path $script:ReportDir)) {
-    New-Item -ItemType Directory -Path $script:ReportDir | Out-Null
+    if ($PSCmdlet.ShouldProcess($script:ReportDir, 'Create report directory')) {
+        New-Item -ItemType Directory -Path $script:ReportDir | Out-Null
+    } else {
+        Write-Host "WhatIf: would create report directory $script:ReportDir" -ForegroundColor DarkYellow
+    }
 }
 
 # ── ReportOnly shortcut ───────────────────────────────────────────────────────
@@ -99,6 +114,12 @@ foreach ($moduleName in $Modules) {
         continue
     }
 
+    if ($moduleName -in $script:SkipModules) {
+        Write-Warning "Module $moduleName is excluded via exclusions.json"
+        $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'Skipped'; Message = 'Excluded in exclusions.json' })
+        continue
+    }
+
     $scriptFile = $script:ModuleScriptMap[$moduleName]
     $scriptPath = Join-Path $script:ModuleDir "$moduleName\$scriptFile"
 
@@ -116,13 +137,18 @@ foreach ($moduleName in $Modules) {
         continue
     }
 
-    Write-Host "▶ Running module: $moduleName" -ForegroundColor Cyan
-    try {
-        $moduleResult = & $resolvedScriptPath -Config $config -WhatIf:$WhatIfPreference
-        $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'Pass'; Detail = $moduleResult })
-    } catch {
-        Write-Warning "Module $moduleName failed: $_"
-        $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'Fail'; Message = $_.Exception.Message })
+    if ($PSCmdlet.ShouldProcess($moduleName, 'Apply security baseline module')) {
+        Write-Host "▶ Running module: $moduleName" -ForegroundColor Cyan
+        try {
+            $moduleResult = & $resolvedScriptPath -Config $config -WhatIf:$WhatIfPreference
+            $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'Pass'; Detail = $moduleResult })
+        } catch {
+            Write-Warning "Module $moduleName failed: $_"
+            $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'Fail'; Message = $_.Exception.Message })
+        }
+    } else {
+        Write-Host "  WhatIf: would apply module $moduleName" -ForegroundColor DarkYellow
+        $results.Add([PSCustomObject]@{ Module = $moduleName; Status = 'WhatIf'; Message = 'Skipped: WhatIf mode' })
     }
 }
 
@@ -135,9 +161,13 @@ $report = [PSCustomObject]@{
     WhatIf       = [bool]$WhatIfPreference
     Results      = $results
 }
-$report | ConvertTo-Json -Depth 10 | Set-Content -Path $reportPath -Encoding UTF8
+if ($PSCmdlet.ShouldProcess($reportPath, 'Write baseline report')) {
+    $report | ConvertTo-Json -Depth 10 | Set-Content -Path $reportPath -Encoding UTF8
+    Write-Host "`nOK Baseline run complete. Report: $reportPath" -ForegroundColor Green
+} else {
+    Write-Host "`nWhatIf: baseline run complete. Report would be written to: $reportPath" -ForegroundColor DarkYellow
+}
 
-Write-Host "`nOK Baseline run complete. Report: $reportPath" -ForegroundColor Green
 $results | Format-Table -AutoSize
 
 } finally {

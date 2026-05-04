@@ -16,3 +16,5 @@ win11secops.pub
 config/security-checkpoint.json
 config/module-hashes.json
 artifacts/
+
+state/

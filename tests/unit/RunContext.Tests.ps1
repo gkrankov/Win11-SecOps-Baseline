@@ -30,12 +30,12 @@ Describe 'New-SecOpsRunContext' {
         ($context.ContainsKey('RunBy')) | Should Be $true
     }
 
-    It 'RunId is exactly 8 characters and uppercase alphanumeric' {
+    It 'RunId is exactly 12 characters and lowercase hex' {
         Clear-SecOpsRunContext
         $context = New-SecOpsRunContext
 
-        $context.RunId.Length | Should Be 8
-        ($context.RunId -match '^[A-Z0-9]{8}$') | Should Be $true
+        $context.RunId.Length | Should Be 12
+        ($context.RunId -match '^[a-f0-9]{12}$') | Should Be $true
     }
 
     It 'sets SECOPS_RUN_ID environment variable' {

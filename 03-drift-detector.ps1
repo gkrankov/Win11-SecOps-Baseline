@@ -119,7 +119,7 @@ function ConvertTo-DisplayString {
     return $Value.ToString()
 }
 
-function Escape-Markdown {
+function ConvertTo-EscapedMarkdown {
     param([string] $Value)
 
     if ($null -eq $Value) {
@@ -333,7 +333,7 @@ function Export-DriftReport {
         $lines.Add('| Category | Setting | Expected | Current | Risk | Timestamp |')
         $lines.Add('| --- | --- | --- | --- | --- | --- |')
         foreach ($drift in $Drifts) {
-            $lines.Add("| $(Escape-Markdown $drift.Category) | $(Escape-Markdown $drift.Setting) | $(Escape-Markdown $drift.ExpectedValue) | $(Escape-Markdown $drift.CurrentValue) | $(Escape-Markdown $drift.RiskLevel) | $(Escape-Markdown $drift.Timestamp) |")
+            $lines.Add("| $(ConvertTo-EscapedMarkdown $drift.Category) | $(ConvertTo-EscapedMarkdown $drift.Setting) | $(ConvertTo-EscapedMarkdown $drift.ExpectedValue) | $(ConvertTo-EscapedMarkdown $drift.CurrentValue) | $(ConvertTo-EscapedMarkdown $drift.RiskLevel) | $(ConvertTo-EscapedMarkdown $drift.Timestamp) |")
         }
     }
 
@@ -344,7 +344,7 @@ function Export-DriftReport {
         $lines.Add('| Category | Status | Message |')
         $lines.Add('| --- | --- | --- |')
         foreach ($result in $RemediationResults) {
-            $lines.Add("| $(Escape-Markdown $result.Category) | $(Escape-Markdown $result.Status) | $(Escape-Markdown $result.Message) |")
+            $lines.Add("| $(ConvertTo-EscapedMarkdown $result.Category) | $(ConvertTo-EscapedMarkdown $result.Status) | $(ConvertTo-EscapedMarkdown $result.Message) |")
         }
     }
 

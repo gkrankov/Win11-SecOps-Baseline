@@ -19,7 +19,7 @@ function New-SecOpsRunContext {
     [CmdletBinding()]
     param()
 
-    $runId = ([System.Guid]::NewGuid().ToString('N').Substring(0, 8)).ToUpperInvariant()
+    $runId = [System.Guid]::NewGuid().ToString("N").ToLowerInvariant().Substring(0,12)
     $env:SECOPS_RUN_ID = $runId
 
     return @{

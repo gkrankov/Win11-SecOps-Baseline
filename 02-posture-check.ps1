@@ -73,7 +73,7 @@ function ConvertTo-DisplayString {
     return $Value.ToString()
 }
 
-function Escape-Markdown {
+function ConvertTo-EscapedMarkdown {
     param([string] $Value)
 
     if ($null -eq $Value) {
@@ -288,7 +288,7 @@ function Export-PostureReport {
     $lines.Add('| --- | --- | --- | --- |')
 
     foreach ($check in $Checks) {
-        $lines.Add("| $(Escape-Markdown $check.Name) | $(Escape-Markdown $check.Status) | $($check.PointsEarned)/$($check.PointsPossible) | $(Escape-Markdown $check.Detail) |")
+        $lines.Add("| $(ConvertTo-EscapedMarkdown $check.Name) | $(ConvertTo-EscapedMarkdown $check.Status) | $($check.PointsEarned)/$($check.PointsPossible) | $(ConvertTo-EscapedMarkdown $check.Detail) |")
     }
 
     $lines.Add('')
@@ -298,7 +298,7 @@ function Export-PostureReport {
     $lines.Add('| --- | --- | --- | --- | --- |')
 
     foreach ($finding in $BaselineFindings) {
-        $lines.Add("| $(Escape-Markdown $finding.Category) | $(Escape-Markdown $finding.Setting) | $(Escape-Markdown $finding.Status) | $(Escape-Markdown $finding.Expected) | $(Escape-Markdown $finding.Current) |")
+        $lines.Add("| $(ConvertTo-EscapedMarkdown $finding.Category) | $(ConvertTo-EscapedMarkdown $finding.Setting) | $(ConvertTo-EscapedMarkdown $finding.Status) | $(ConvertTo-EscapedMarkdown $finding.Expected) | $(ConvertTo-EscapedMarkdown $finding.Current) |")
     }
 
     $lines.Add('')
@@ -310,7 +310,7 @@ function Export-PostureReport {
         $lines.Add('| Address | Port | Process | PID |')
         $lines.Add('| --- | --- | --- | --- |')
         foreach ($port in $ListeningPorts) {
-            $lines.Add("| $(Escape-Markdown $port.LocalAddress) | $($port.LocalPort) | $(Escape-Markdown $port.ProcessName) | $($port.OwningProcess) |")
+            $lines.Add("| $(ConvertTo-EscapedMarkdown $port.LocalAddress) | $($port.LocalPort) | $(ConvertTo-EscapedMarkdown $port.ProcessName) | $($port.OwningProcess) |")
         }
     }
 
