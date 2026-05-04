@@ -45,7 +45,7 @@ All notable changes to Win11-SecOps-Baseline will be documented here.
 - Current pin: Pester 3.4.0 (EOL since Pester 4, 2017)
 - Blocker: Pester 3.4 `Should Be` syntax vs Pester 5 `Should -Be`
 - Migration path:
-	1. Add Pester 5 compatibility shim or rewrite assertions
-	2. Remove eviction block from CI workflow
-	3. Target: before v1.0.0 release
+  1. Add Pester 5 compatibility shim or rewrite assertions
+  2. Remove eviction block from CI workflow
+  3. Target: before v1.0.0 release
 - Tracking issue: open a GitHub Issue tagged `tech-debt`
