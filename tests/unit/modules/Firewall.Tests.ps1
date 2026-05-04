@@ -1,9 +1,6 @@
 # Firewall.Tests.ps1
 # Pester 3.4 compatible scaffold - logic bodies require authoring
 
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$root = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $here))
-
 Describe "Firewall Module" {
 
     Context "Default inbound action" {
